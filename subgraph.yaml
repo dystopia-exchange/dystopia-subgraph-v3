@@ -1,0 +1,229 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Factory
+    network: matic
+    source:
+      address: "0x1d21Db6cde1b18c7E47B0F7F42f4b3F68b9beeC9"
+      abi: FactoryAbi
+      startBlock: 27986210
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/factory.ts
+      entities:
+        - Pair
+        - Token
+      abis:
+        - name: FactoryAbi
+          file: ./abis/factory.json
+        - name: ERC20SymbolBytes
+          file: ./abis/ERC20SymbolBytes.json
+        - name: ERC20NameBytes
+          file: ./abis/ERC20NameBytes.json
+        - name: PairAbi
+          file: ./abis/pair.json
+      eventHandlers:
+        - event: PairCreated(indexed address,indexed address,bool,address,uint256)
+          handler: handleNewPair
+
+  - kind: ethereum/contract
+    name: Controller
+    network: matic
+    source:
+      address: "0x7377eA6Afb77Ba013B23306154691c231824522a"
+      abi: ControllerAbi
+      startBlock: 27986210
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/controller.ts
+      entities:
+        - VoterEntity
+        - VeDistEntity
+      abis:
+        - name: ControllerAbi
+          file: ./abis/controller.json
+        - name: VeDistAbi
+          file: ./abis/veDist.json
+        - name: VeAbi
+          file: ./abis/ve.json
+        - name: MintableAbi
+          file: ./abis/mintable.json
+      eventHandlers:
+        - event: SetVeDist(address)
+          handler: handleSetVeDist
+        - event: SetVoter(address)
+          handler: handleSetVoter
+
+########## TEMPLATES ############################################
+
+templates:
+  - kind: ethereum/contract
+    name: PairTemplate
+    network: matic
+    source:
+      abi: PairAbi
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/core.ts
+      entities:
+        - Pair
+        - Token
+      abis:
+        - name: PairAbi
+          file: ./abis/pair.json
+      eventHandlers:
+        - event: Mint(indexed address,uint256,uint256)
+          handler: handleMint
+        - event: Burn(indexed address,uint256,uint256,indexed address)
+          handler: handleBurn
+        - event: Swap(indexed address,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleSwap
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Sync(uint256,uint256)
+          handler: handleSync
+
+  - kind: ethereum/contract
+    name: GaugeTemplate
+    network: matic
+    source:
+      abi: GaugeAbi
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/gauge.ts
+      entities:
+        - GaugeEntity
+      abis:
+        - name: GaugeAbi
+          file: ./abis/gauge.json
+        - name: PairAbi
+          file: ./abis/pair.json
+      eventHandlers:
+        - event: NotifyReward(indexed address,indexed address,uint256)
+          handler: handleNotify
+        - event: Deposit(indexed address,uint256)
+          handler: handleDeposit
+        - event: Withdraw(indexed address,uint256)
+          handler: handleWithdraw
+        - event: ClaimRewards(indexed address,indexed address,uint256,address)
+          handler: handleClaimRewards
+
+  - kind: ethereum/contract
+    name: BribeTemplate
+    network: matic
+    source:
+      abi: BribeAbi
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/bribe.ts
+      entities:
+        - BribeEntity
+      abis:
+        - name: BribeAbi
+          file: ./abis/bribe.json
+        - name: PairAbi
+          file: ./abis/pair.json
+      eventHandlers:
+        - event: NotifyReward(indexed address,indexed address,uint256)
+          handler: handleNotify
+        - event: Deposit(indexed address,uint256)
+          handler: handleDeposit
+        - event: Withdraw(indexed address,uint256)
+          handler: handleWithdraw
+        - event: ClaimRewards(indexed address,indexed address,uint256,address)
+          handler: handleClaimRewards
+
+  - kind: ethereum/contract
+    name: VeTemplate
+    network: matic
+    source:
+      abi: VeAbi
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/ve.ts
+      entities:
+        - VeEntity
+      abis:
+        - name: VeAbi
+          file: ./abis/ve.json
+        - name: PairAbi
+          file: ./abis/pair.json
+      eventHandlers:
+        - event: Deposit(indexed address,uint256,uint256,indexed uint256,uint8,uint256)
+          handler: handleDeposit
+        - event: Withdraw(indexed address,uint256,uint256,uint256)
+          handler: handleWithdraw
+
+  - kind: ethereum/contract
+    name: VoterTemplate
+    network: matic
+    source:
+      abi: VoterAbi
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/voter.ts
+      entities:
+        - VoterEntity
+      abis:
+        - name: VoterAbi
+          file: ./abis/voter.json
+        - name: VeAbi
+          file: ./abis/ve.json
+        - name: GaugeAbi
+          file: ./abis/gauge.json
+        - name: MinterAbi
+          file: ./abis/minter.json
+      eventHandlers:
+        - event: GaugeCreated(indexed address,address,indexed address,indexed address)
+          handler: handleGaugeCreated
+        - event: Whitelisted(indexed address,indexed address)
+          handler: handleWhitelisted
+        - event: Deposit(indexed address,indexed address,uint256,uint256)
+          handler: handleDeposit
+        - event: Withdraw(indexed address,indexed address,uint256,uint256)
+          handler: handleWithdraw
+        - event: Attach(indexed address,indexed address,uint256)
+          handler: handleAttach
+        - event: Detach(indexed address,indexed address,uint256)
+          handler: handleDetach
+        - event: Voted(indexed address,uint256,int256)
+          handler: handleVoted
+        - event: Abstained(uint256,int256)
+          handler: handleAbstained
+
+  - kind: ethereum/contract
+    name: VeDistTemplate
+    network: matic
+    source:
+      abi: VeDistAbi
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/ve-dist.ts
+      entities:
+        - VeDistEntity
+      abis:
+        - name: VeDistAbi
+          file: ./abis/veDist.json
+        - name: VeAbi
+          file: ./abis/ve.json
+      eventHandlers:
+        - event: CheckpointToken(uint256,uint256)
+          handler: handleCheckpointToken

@@ -1,0 +1,43 @@
+name: Unit tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: { }
+  workflow_dispatch: { }
+
+jobs:
+
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Install dependencies
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: install
+      -
+        name: Generate subgraph types
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: codegen
+      -
+        name: Build subgraph
+        uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: build
+      -
+        name: Run docker
+        uses: addnab/docker-run-action@v3
+        with:
+          registry: gcr.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          image: belbix/subgraph:matchstick
+          options: -t --rm --mount type=bind,source=${{ github.workspace }},target=/matchstick
+          run: ../binary-linux-20

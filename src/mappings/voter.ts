@@ -1,0 +1,247 @@
+// noinspection JSUnusedGlobalSymbols
+
+import {
+  BribeEntity,
+  GaugeEntity,
+  GaugeRewardToken,
+  GaugeUser,
+  Pair,
+  Token, VeDistEntity,
+  VeEntity,
+  VeNFTEntity,
+  Vote
+} from '../types/schema'
+import {BribeTemplate, GaugeTemplate} from '../types/templates';
+import {ZERO_BD, ZERO_BI} from './constants';
+import {
+  Abstained,
+  Attach,
+  Deposit,
+  Detach,
+  GaugeCreated, Voted,
+  VoterAbi,
+  Whitelisted,
+  Withdraw
+} from '../types/templates/VoterTemplate/VoterAbi';
+import {Address, BigDecimal, BigInt, log, store} from '@graphprotocol/graph-ts';
+import {abs, calculateApr, formatUnits} from './helpers';
+import {VeAbi} from '../types/templates/VoterTemplate/VeAbi';
+import {GaugeAbi} from '../types/templates/VoterTemplate/GaugeAbi';
+import {MinterAbi} from '../types/templates/VoterTemplate/MinterAbi';
+
+
+export function handleGaugeCreated(event: GaugeCreated): void {
+  let gauge = getOrCreateGauge(event.params.gauge.toHexString())
+  const voterCtr = VoterAbi.bind(event.address)
+
+  let bribe = BribeEntity.load(event.params.bribe.toHexString())
+  // fetch info if null
+  if (!bribe) {
+    bribe = new BribeEntity(event.params.bribe.toHexString())
+    bribe.pair = event.params.pool.toHexString()
+    bribe.ve = voterCtr.ve().toHexString()
+    bribe.veUnderlying = voterCtr.token().toHexString();
+    bribe.bribeTokensAdr = [];
+    BribeTemplate.create(event.params.bribe);
+    bribe.save()
+  }
+
+  let pair = Pair.load(event.params.pool.toHexString()) as Pair;
+
+  pair.gauge = gauge.id
+  pair.gaugebribes = bribe.id
+  gauge.bribe = bribe.id
+
+  // save updated values
+  gauge.save()
+  pair.save()
+}
+
+export function handleWhitelisted(event: Whitelisted): void {
+  let token = Token.load(event.params.token.toHexString())
+  if (!token) {
+    return;
+  }
+  token.isWhitelisted = true
+  token.save()
+}
+
+export function handleDeposit(event: Deposit): void {
+  const gaugeUser = getOrCreateGaugeUser(event.params.gauge.toHexString(), event.params.lp.toHexString());
+  gaugeUser.deposit = gaugeUser.deposit.plus(formatUnits(event.params.amount, BigInt.fromI32(18)))
+  gaugeUser.veNFT = event.params.tokenId.toString()
+  gaugeUser.save();
+}
+
+export function handleWithdraw(event: Withdraw): void {
+  const gaugeUser = getOrCreateGaugeUser(event.params.gauge.toHexString(), event.params.lp.toHexString());
+  gaugeUser.deposit = gaugeUser.deposit.minus(formatUnits(event.params.amount, BigInt.fromI32(18)));
+  // emit with veId means full withdraw and unlock ve
+  if (event.params.tokenId.notEqual(ZERO_BI)) {
+    gaugeUser.veNFT = null;
+  }
+  gaugeUser.save();
+}
+
+export function handleAttach(event: Attach): void {
+  const ve = getVeNFT(event.params.tokenId.toString())
+  ve.attachments = ve.attachments + 1;
+  ve.save();
+}
+
+export function handleDetach(event: Detach): void {
+  const ve = getVeNFT(event.params.tokenId.toString())
+  ve.attachments = ve.attachments - 1;
+  ve.save();
+}
+
+export function handleVoted(event: Voted): void {
+  const veNft = getVeNFT(event.params.tokenId.toString());
+  fetchAllVotedPools(veNft, event.address.toHex());
+}
+
+export function handleAbstained(event: Abstained): void {
+  const veNft = getVeNFT(event.params.tokenId.toString());
+  if (veNft.voteIds.length != 0) {
+    for (let i = 0; i < veNft.voteIds.length; i++) {
+      store.remove('Vote', veNft.voteIds[i]);
+    }
+    veNft.voteIds = [];
+    veNft.save();
+  }
+}
+
+// *****************************************************
+//                     HELPERS
+// *****************************************************
+
+function getOrCreateGauge(
+  gaugeAdr: string
+): GaugeEntity {
+  let gauge = GaugeEntity.load(gaugeAdr)
+
+  if (!gauge) {
+    gauge = new GaugeEntity(gaugeAdr)
+    const gaugeCtr = GaugeAbi.bind(Address.fromString(gaugeAdr));
+    const bribe = gaugeCtr.try_bribe()
+    if (bribe.reverted) {
+      log.critical("BRIBE NOT FOUND, gauge: {}", [gaugeAdr]);
+    }
+    gauge.bribe = bribe.value.toHex()
+    gauge.pair = gaugeCtr.underlying().toHex()
+    gauge.totalSupply = ZERO_BD
+    gauge.rewardTokensAddresses = []
+    GaugeTemplate.create(Address.fromString(gaugeAdr))
+  }
+  return gauge;
+}
+
+function getVeNFT(veId: string): VeNFTEntity {
+  const ve = VeNFTEntity.load(veId);
+  if (!ve) {
+    log.critical("VE NOT FOUND", [veId]);
+  }
+  return ve as VeNFTEntity;
+}
+
+function getOrCreateGaugeUser(gaugeAdr: string, userAdr: string): GaugeUser {
+  let user = GaugeUser.load(gaugeAdr + userAdr);
+  if (!user) {
+    user = new GaugeUser(gaugeAdr + userAdr);
+    user.gauge = gaugeAdr
+    user.user = userAdr
+    user.deposit = ZERO_BD
+  }
+  return user;
+}
+
+function getOrCreateVote(voterAdr: string, veId: string, gaugeAdr: string): Vote {
+  let vote = Vote.load(generateVoteId(voterAdr, veId, gaugeAdr));
+  if (!vote) {
+    vote = new Vote(generateVoteId(voterAdr, veId, gaugeAdr));
+
+    vote.voter = voterAdr;
+    vote.veNFT = veId;
+    vote.gauge = gaugeAdr
+    vote.weight = ZERO_BD
+    vote.weightPercent = ZERO_BD
+    vote.expectAPR = ZERO_BD
+    vote.expectedAmount = ZERO_BD
+  }
+  return vote;
+}
+
+// shortcut for fetch voted gauges, event doesn't have info about it
+function fetchAllVotedPools(veNFT: VeNFTEntity, voterAdr: string): void {
+  if (veNFT.voteIds.length == 0) {
+    const ve = VeEntity.load(veNFT.ve) as VeEntity;
+    const voterCtr = VoterAbi.bind(Address.fromString(voterAdr));
+    const veCtr = VeAbi.bind(Address.fromString(veNFT.ve))
+    const vePower = formatUnits(veCtr.balanceOfNFT(BigInt.fromString(veNFT.id)), BigInt.fromI32(18))
+    const minterCtr = MinterAbi.bind(Address.fromString(ve.underlyingMinter));
+
+    const weekly = formatUnits(minterCtr.weeklyEmission(), BigInt.fromI32(18));
+    const totalWeight = voterCtr.totalWeight().toBigDecimal();
+
+    for (let i = 0; i < 1000; i++) {
+      const pool = voterCtr.try_poolVote(BigInt.fromString(veNFT.id), BigInt.fromI32(i));
+      if (pool.reverted) {
+        break;
+      }
+      const pair = Pair.load(pool.value.toHex()) as Pair;
+      const gauge = pair.gauge as string;
+      if (!gauge) {
+        log.critical("NO GAUGE FOR VOTE {}", [pool.value.toHex()]);
+        continue;
+      }
+
+      const vote = getOrCreateVote(voterAdr, veNFT.id, gauge);
+
+      vote.weight = formatUnits(voterCtr.votes(BigInt.fromString(veNFT.id), pool.value), BigInt.fromI32(18));
+      vote.weightPercent = abs(vote.weight.div(vePower).times(BigDecimal.fromString('100')));
+
+      const poolWeight = voterCtr.weights(pool.value).toBigDecimal()
+
+      vote.expectedAmount = poolWeight.div(totalWeight).times(weekly);
+      vote.expectAPR = calculateExpectedApr(gauge, ve.underlying, vote.expectedAmount);
+
+      const arr = veNFT.voteIds;
+      arr.push(vote.id);
+      veNFT.voteIds = arr;
+      veNFT.save();
+
+      vote.save();
+    }
+  }
+}
+
+
+function calculateExpectedApr(
+  gaugeAdr: string,
+  rewardTokenAdr: string,
+  expectedProfit: BigDecimal
+): BigDecimal {
+  const gauge = getOrCreateGauge(gaugeAdr);
+  const gaugeCtr = GaugeAbi.bind(Address.fromString(gaugeAdr));
+  const pair = Pair.load(gauge.pair) as Pair;
+  const rewardToken = Token.load(rewardTokenAdr);
+  if (!rewardToken) {
+    return ZERO_BD;
+  }
+
+  let pairPriceETH = ZERO_BD;
+  if (pair.totalSupply.notEqual(ZERO_BD)) {
+    pairPriceETH = pair.reserveETH.div(pair.totalSupply);
+  } else {
+    return ZERO_BD;
+  }
+
+  const totalSupplyETH = formatUnits(gaugeCtr.derivedSupply(), BigInt.fromI32(18)).times(pairPriceETH);
+
+  return calculateApr(ZERO_BI, BigInt.fromI32(60 * 60 * 24 * 7), expectedProfit.times(rewardToken.derivedETH), totalSupplyETH);
+
+}
+
+function generateVoteId(voterAdr: string, veId: string, gaugeAdr: string): string {
+  return voterAdr + veId + gaugeAdr;
+}
