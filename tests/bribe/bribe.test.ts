@@ -50,7 +50,7 @@ describe("bribe-tests", () => {
 
     handleNotify(event);
 
-    assert.fieldEquals(BRIBE_TOKEN_ENTITY, REWARD_ADR, 'apr', '15642.85714285714285714285714285714')
+    assert.fieldEquals(BRIBE_TOKEN_ENTITY, BRIBE_ADR+REWARD_ADR, 'apr', '15642.85714285714285714285714285714')
   })
 
   test('deposit test', () => {

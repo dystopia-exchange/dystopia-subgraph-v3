@@ -359,6 +359,7 @@ type GaugeEntity @entity {
 
     pair: Pair!
     totalSupply :BigDecimal!
+    totalSupplyETH :BigDecimal!
     bribe:BribeEntity
 
     rewardTokensAddresses: [String!]!

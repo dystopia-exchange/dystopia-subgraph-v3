@@ -109,7 +109,7 @@ function updateBribeToken(
   const vePrice = veToken.derivedETH;
   const totalSupplyETH = formatUnits(bribeCtr.derivedSupply(), BigInt.fromI32(18)).times(vePrice);
 
-  const rewardRate = formatUnits(bribeCtr.rewardPerToken(Address.fromString(rewardTokenAdr)), token.decimals);
+  const rewardRate = formatUnits(bribeCtr.rewardPerToken(Address.fromString(rewardTokenAdr)), token.decimals.plus(BigInt.fromI32(18)));
   const amountETH = rewardRate.times(totalSupplyETH).times(tokenPrice)
 
   bribeToken.amountETH = amountETH;

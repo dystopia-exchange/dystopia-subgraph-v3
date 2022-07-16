@@ -16,7 +16,7 @@ const network = dataSource.network();
 // ***********************************************************************
 
 // minimum liquidity for price to get tracked = 0.01 ETH
-export const MINIMUM_LIQUIDITY_THRESHOLD_ETH = BigDecimal.fromString('0.01')
+export const MINIMUM_LIQUIDITY_THRESHOLD_ETH = BigDecimal.fromString('1')
 
 export function wethAddress(): Address {
   if (network == 'matic') {

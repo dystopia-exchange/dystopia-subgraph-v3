@@ -130,6 +130,7 @@ function getOrCreateGauge(
     gauge.bribe = bribe.value.toHex()
     gauge.pair = gaugeCtr.underlying().toHex()
     gauge.totalSupply = ZERO_BD
+    gauge.totalSupplyETH = ZERO_BD
     gauge.rewardTokensAddresses = []
     GaugeTemplate.create(Address.fromString(gaugeAdr))
   }
