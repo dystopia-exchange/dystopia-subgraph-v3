@@ -213,9 +213,10 @@ function fetchAllVotedPools(veNFT: VeNFTEntity, voterAdr: string): void {
       const arr = veNFT.voteIds;
       arr.push(vote.id);
       veNFT.voteIds = arr;
-      veNFT.save();
 
+      veNFT.save();
       vote.save();
+      gauge.save();
     }
   }
 }
