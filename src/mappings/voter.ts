@@ -131,6 +131,10 @@ function getOrCreateGauge(
     gauge.pair = gaugeCtr.underlying().toHex()
     gauge.totalSupply = ZERO_BD
     gauge.totalSupplyETH = ZERO_BD
+    gauge.voteWeight = ZERO_BD
+    gauge.expectedAmount = ZERO_BD
+    gauge.expectAPR = ZERO_BD
+    gauge.totalWeight = ZERO_BD
     gauge.rewardTokensAddresses = []
     GaugeTemplate.create(Address.fromString(gaugeAdr))
   }
@@ -166,8 +170,6 @@ function getOrCreateVote(voterAdr: string, veId: string, gaugeAdr: string): Vote
     vote.gauge = gaugeAdr
     vote.weight = ZERO_BD
     vote.weightPercent = ZERO_BD
-    vote.expectAPR = ZERO_BD
-    vote.expectedAmount = ZERO_BD
   }
   return vote;
 }
@@ -190,21 +192,23 @@ function fetchAllVotedPools(veNFT: VeNFTEntity, voterAdr: string): void {
         break;
       }
       const pair = Pair.load(pool.value.toHex()) as Pair;
-      const gauge = pair.gauge as string;
-      if (!gauge) {
+      const gaugeAdr = pair.gauge as string;
+      if (!gaugeAdr) {
         log.critical("NO GAUGE FOR VOTE {}", [pool.value.toHex()]);
         continue;
       }
 
-      const vote = getOrCreateVote(voterAdr, veNFT.id, gauge);
+      const vote = getOrCreateVote(voterAdr, veNFT.id, gaugeAdr);
 
       vote.weight = formatUnits(voterCtr.votes(BigInt.fromString(veNFT.id), pool.value), BigInt.fromI32(18));
       vote.weightPercent = abs(vote.weight.div(vePower).times(BigDecimal.fromString('100')));
 
-      const poolWeight = voterCtr.weights(pool.value).toBigDecimal()
+      const gauge = GaugeEntity.load(gaugeAdr) as GaugeEntity;
 
-      vote.expectedAmount = poolWeight.div(totalWeight).times(weekly);
-      vote.expectAPR = calculateExpectedApr(gauge, ve.underlying, vote.expectedAmount);
+      gauge.voteWeight = voterCtr.weights(pool.value).toBigDecimal();
+      gauge.totalWeight = totalWeight;
+      gauge.expectedAmount = gauge.voteWeight.div(totalWeight).times(weekly);
+      gauge.expectAPR = calculateExpectedApr(gaugeAdr, ve.underlying, gauge.expectedAmount);
 
       const arr = veNFT.voteIds;
       arr.push(vote.id);

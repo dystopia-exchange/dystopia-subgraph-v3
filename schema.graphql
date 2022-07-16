@@ -362,6 +362,11 @@ type GaugeEntity @entity {
     totalSupplyETH :BigDecimal!
     bribe:BribeEntity
 
+    voteWeight: BigDecimal!
+    expectedAmount: BigDecimal!
+    expectAPR: BigDecimal!
+    totalWeight: BigDecimal!
+
     rewardTokensAddresses: [String!]!
 
     rewardTokens: [GaugeRewardToken!]! @derivedFrom(field: "gauge")
@@ -374,7 +379,11 @@ type GaugeRewardToken @entity {
     gauge: GaugeEntity!
     token: Token!
 
-    amountETH: BigDecimal!
+
+    totalSupply:BigDecimal!
+    totalSupplyETH:BigDecimal!
+    left:BigDecimal!
+    leftETH:BigDecimal!
     apr:BigDecimal!
 }
 
@@ -409,7 +418,10 @@ type BribeToken @entity {
     bribe: BribeEntity!
     token: Token!
 
-    amountETH: BigDecimal!
+    totalSupply:BigDecimal!
+    totalSupplyETH:BigDecimal!
+    left:BigDecimal!
+    leftETH:BigDecimal!
     apr:BigDecimal!
 }
 
@@ -470,8 +482,6 @@ type Vote @entity {
 
     weight: BigDecimal!
     weightPercent: BigDecimal!
-    expectAPR: BigDecimal!
-    expectedAmount: BigDecimal!
 }
 
 ##################################################

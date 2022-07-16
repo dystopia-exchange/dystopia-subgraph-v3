@@ -13,7 +13,7 @@ import {PairAbi} from '../types/templates/BribeTemplate/PairAbi';
 
 export function handleNotify(event: NotifyReward): void {
   const bribe = BribeEntity.load(event.address.toHexString()) as BribeEntity;
-  updateBribeToken(bribe, event.params.reward.toHexString())
+  updateBribeToken(bribe, event.params.reward.toHexString(), event.block.timestamp)
 }
 
 
@@ -21,7 +21,7 @@ export function handleDeposit(event: Deposit): void {
   const bribe = BribeEntity.load(event.address.toHexString()) as BribeEntity;
   const tokens = bribe.bribeTokensAdr;
   for (let i = 0; i < tokens.length; i++) {
-    updateBribeToken(bribe, tokens[i]);
+    updateBribeToken(bribe, tokens[i], event.block.timestamp);
   }
 
   const user = getOrCreateBribeUser(addressToVeId(event.params.from), event.address.toHexString());
@@ -32,7 +32,7 @@ export function handleWithdraw(event: Withdraw): void {
   const bribe = BribeEntity.load(event.address.toHexString()) as BribeEntity;
   const tokens = bribe.bribeTokensAdr;
   for (let i = 0; i < tokens.length; i++) {
-    updateBribeToken(bribe, tokens[i]);
+    updateBribeToken(bribe, tokens[i], event.block.timestamp);
   }
   // in bribe contract user always withdraw full amount, you can just delete the record
   store.remove('BribeUser', addressToVeId(event.params.from));
@@ -40,7 +40,7 @@ export function handleWithdraw(event: Withdraw): void {
 
 export function handleClaimRewards(event: ClaimRewards): void {
   const bribe = BribeEntity.load(event.address.toHexString()) as BribeEntity;
-  updateBribeToken(bribe, event.params.reward.toHexString());
+  updateBribeToken(bribe, event.params.reward.toHexString(), event.block.timestamp);
 }
 
 // ********************************************************
@@ -87,6 +87,7 @@ function getOrCreateBribeUser(veId: string, bribeAdr: string): BribeUser {
 function updateBribeToken(
   bribe: BribeEntity,
   rewardTokenAdr: string,
+  now: BigInt,
 ): void {
   const bribeCtr = BribeAbi.bind(Address.fromString(bribe.id));
   const token = getOrCreateToken(rewardTokenAdr)
@@ -104,16 +105,18 @@ function updateBribeToken(
     bribe.save();
   }
 
-  // will be zero if a pair not exist
-  const tokenPrice = token.derivedETH;
-  const vePrice = veToken.derivedETH;
-  const totalSupplyETH = formatUnits(bribeCtr.derivedSupply(), BigInt.fromI32(18)).times(vePrice);
+  const totalSupply = formatUnits(bribeCtr.derivedSupply(), BigInt.fromI32(18));
+  const totalSupplyETH = totalSupply.times(veToken.derivedETH);
 
-  const rewardRate = formatUnits(bribeCtr.rewardPerToken(Address.fromString(rewardTokenAdr)), token.decimals.plus(BigInt.fromI32(18)));
-  const amountETH = rewardRate.times(totalSupplyETH).times(tokenPrice)
+  const left = formatUnits(bribeCtr.left(Address.fromString(rewardTokenAdr)), token.decimals);
+  const finishPeriod = bribeCtr.periodFinish(Address.fromString(rewardTokenAdr));
+  const leftETH = left.times(token.derivedETH)
 
-  bribeToken.amountETH = amountETH;
-  bribeToken.apr = calculateApr(ZERO_BI, BigInt.fromI32(60 * 60 * 24 * 7), amountETH, totalSupplyETH);
+  bribeToken.totalSupply = totalSupply;
+  bribeToken.totalSupplyETH = totalSupplyETH;
+  bribeToken.left = left;
+  bribeToken.leftETH = leftETH;
+  bribeToken.apr = calculateApr(now, finishPeriod, leftETH, totalSupplyETH);
 
   bribeToken.save();
 }

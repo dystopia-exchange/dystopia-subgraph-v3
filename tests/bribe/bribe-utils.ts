@@ -16,7 +16,9 @@ export const USER_ADR = '0x000000000000000000000000000000000000001a';
 
 export const REWARD_AMOUNT = BigInt.fromI32(10_000);
 export const TOTAL_SUPPLY = parseUnits(BigDecimal.fromString('100'), BigInt.fromI32(18));
-export const REWARD_RATE = parseUnits(BigDecimal.fromString('3'), BigInt.fromI32(18+10));
+export const LEFT = parseUnits(BigDecimal.fromString('3'), BigInt.fromI32(10));
+
+export const PERIOD_FINISH = BigInt.fromI32(60 * 60 * 24)
 
 
 export function createBribe(): void {
