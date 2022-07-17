@@ -102,11 +102,37 @@ export function handleVoted(event: Voted): void {
 
 export function handleAbstained(event: Abstained): void {
   const veNft = getVeNFT(event.params.tokenId.toString());
-  fetchAllVotedPools(veNft, event.address.toHex())
+
+  // assume that reset call generate events before vote event
+  // hope subgraph will handle events ordered
+
   if (veNft.voteIds.length != 0) {
+    const voterCtr = VoterAbi.bind(event.address)
+    const ve = VeEntity.load(veNft.ve) as VeEntity;
+    const minterCtr = MinterAbi.bind(Address.fromString(ve.underlyingMinter));
+
+    const weekly = formatUnits(minterCtr.weeklyEmission(), BigInt.fromI32(18));
+    const totalWeight = formatUnits(voterCtr.totalWeight(), BigInt.fromI32(18));
+
     for (let i = 0; i < veNft.voteIds.length; i++) {
+
+      const vote = Vote.load(veNft.voteIds[i]) as Vote;
+      if(!vote) {
+        continue;
+      }
+
+      updateGaugeVotes(
+        vote.gauge,
+        voterCtr,
+        vote.pool,
+        totalWeight,
+        weekly,
+        ve.underlying
+      );
+
       store.remove('Vote', veNft.voteIds[i]);
     }
+
     veNft.voteIds = [];
     veNft.save();
   }
@@ -185,7 +211,7 @@ function fetchAllVotedPools(veNFT: VeNFTEntity, voterAdr: string): void {
     const minterCtr = MinterAbi.bind(Address.fromString(ve.underlyingMinter));
 
     const weekly = formatUnits(minterCtr.weeklyEmission(), BigInt.fromI32(18));
-    const totalWeight = voterCtr.totalWeight().toBigDecimal();
+    const totalWeight = formatUnits(voterCtr.totalWeight(), BigInt.fromI32(18));
 
     for (let i = 0; i < 1000; i++) {
       const pool = voterCtr.try_poolVote(BigInt.fromString(veNFT.id), BigInt.fromI32(i));
@@ -201,25 +227,43 @@ function fetchAllVotedPools(veNFT: VeNFTEntity, voterAdr: string): void {
 
       const vote = getOrCreateVote(voterAdr, veNFT.id, gaugeAdr);
 
+      vote.pool = pool.value.toHex()
       vote.weight = formatUnits(voterCtr.votes(BigInt.fromString(veNFT.id), pool.value), BigInt.fromI32(18));
       vote.weightPercent = abs(vote.weight.div(vePower).times(BigDecimal.fromString('100')));
 
-      const gauge = GaugeEntity.load(gaugeAdr) as GaugeEntity;
-
-      gauge.voteWeight = voterCtr.weights(pool.value).toBigDecimal();
-      gauge.totalWeight = totalWeight;
-      gauge.expectedAmount = gauge.voteWeight.div(totalWeight).times(weekly);
-      gauge.expectAPR = calculateExpectedApr(gaugeAdr, ve.underlying, gauge.expectedAmount);
+      updateGaugeVotes(
+        gaugeAdr,
+        voterCtr,
+        pool.value.toHex(),
+        totalWeight,
+        weekly,
+        ve.underlying
+      );
 
       const arr = veNFT.voteIds;
       arr.push(vote.id);
       veNFT.voteIds = arr;
-
       veNFT.save();
+
       vote.save();
-      gauge.save();
     }
   }
+}
+
+function updateGaugeVotes(
+  gaugeAdr: string,
+  voterCtr: VoterAbi,
+  poolAdr: string,
+  totalWeight: BigDecimal,
+  weekly: BigDecimal,
+  veUnderlying: string
+): void {
+  const gauge = GaugeEntity.load(gaugeAdr) as GaugeEntity;
+  gauge.voteWeight = voterCtr.weights(Address.fromString(poolAdr)).toBigDecimal();
+  gauge.totalWeight = totalWeight;
+  gauge.expectedAmount = gauge.voteWeight.div(totalWeight).times(weekly);
+  gauge.expectAPR = calculateExpectedApr(gaugeAdr, veUnderlying, gauge.expectedAmount);
+  gauge.save();
 }
 
 

@@ -479,6 +479,7 @@ type Vote @entity {
     voter: VoterEntity!
     veNFT: VeNFTEntity!
     gauge: GaugeEntity!
+    pool: Pair!
 
     weight: BigDecimal!
     weightPercent: BigDecimal!
