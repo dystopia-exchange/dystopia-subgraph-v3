@@ -102,6 +102,7 @@ export function handleVoted(event: Voted): void {
 
 export function handleAbstained(event: Abstained): void {
   const veNft = getVeNFT(event.params.tokenId.toString());
+  fetchAllVotedPools(veNft, event.address.toHex())
   if (veNft.voteIds.length != 0) {
     for (let i = 0; i < veNft.voteIds.length; i++) {
       store.remove('Vote', veNft.voteIds[i]);
