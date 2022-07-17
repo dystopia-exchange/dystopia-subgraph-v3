@@ -405,7 +405,7 @@ type GaugeUser @entity {
 type BribeEntity @entity{
     id: ID!
     pair: Pair!
-    ve: String!
+    ve: VeEntity!
     veUnderlying: String!
     bribeTokensAdr: [String!]!
     bribeTokens: [BribeToken!]! @derivedFrom(field: "bribe")
