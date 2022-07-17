@@ -36,7 +36,7 @@ describe("bribe-tests", () => {
 
   test('handleNotify test', () => {
 
-    createMockedFunction(Address.fromString(BRIBE_ADR), "derivedSupply", "derivedSupply():(uint256)")
+    createMockedFunction(Address.fromString(BRIBE_ADR), "totalSupply", "totalSupply():(uint256)")
       .returns([ethereum.Value.fromUnsignedBigInt(TOTAL_SUPPLY)])
     createMockedFunction(Address.fromString(BRIBE_ADR), "periodFinish", "periodFinish(address):(uint256)")
       .withArgs([ethereum.Value.fromAddress(Address.fromString(REWARD_ADR))])

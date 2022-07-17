@@ -105,7 +105,7 @@ function updateBribeToken(
     bribe.save();
   }
 
-  const totalSupply = formatUnits(bribeCtr.derivedSupply(), BigInt.fromI32(18));
+  const totalSupply = formatUnits(bribeCtr.totalSupply(), BigInt.fromI32(18));
   const totalSupplyETH = totalSupply.times(veToken.derivedETH);
 
   const left = formatUnits(bribeCtr.left(Address.fromString(rewardTokenAdr)), token.decimals);

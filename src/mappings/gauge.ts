@@ -80,7 +80,7 @@ function updateGaugeToken(
     pairPriceETH = pair.reserveETH.div(pair.totalSupply);
   }
 
-  const totalSupply = formatUnits(gaugeCtr.derivedSupply(), BigInt.fromI32(18));
+  const totalSupply = formatUnits(gaugeCtr.totalSupply(), BigInt.fromI32(18));
   const totalSupplyETH = totalSupply.times(pairPriceETH);
 
   const left = formatUnits(gaugeCtr.left(Address.fromString(rewardTokenAdr)), token.decimals);

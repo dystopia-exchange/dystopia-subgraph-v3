@@ -287,7 +287,7 @@ function calculateExpectedApr(
     return ZERO_BD;
   }
 
-  const totalSupplyETH = formatUnits(gaugeCtr.derivedSupply(), BigInt.fromI32(18)).times(pairPriceETH);
+  const totalSupplyETH = formatUnits(gaugeCtr.totalSupply(), BigInt.fromI32(18)).times(pairPriceETH);
 
   return calculateApr(ZERO_BI, BigInt.fromI32(60 * 60 * 24 * 7), expectedProfit.times(rewardToken.derivedETH), totalSupplyETH);
 
