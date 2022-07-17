@@ -117,7 +117,7 @@ export function handleAbstained(event: Abstained): void {
     for (let i = 0; i < veNft.voteIds.length; i++) {
 
       const vote = Vote.load(veNft.voteIds[i]) as Vote;
-      if(!vote) {
+      if (!vote) {
         continue;
       }
 
@@ -259,7 +259,7 @@ function updateGaugeVotes(
   veUnderlying: string
 ): void {
   const gauge = GaugeEntity.load(gaugeAdr) as GaugeEntity;
-  gauge.voteWeight = voterCtr.weights(Address.fromString(poolAdr)).toBigDecimal();
+  gauge.voteWeight = formatUnits(voterCtr.weights(Address.fromString(poolAdr)), BigInt.fromI32(18));
   gauge.totalWeight = totalWeight;
   gauge.expectedAmount = gauge.voteWeight.div(totalWeight).times(weekly);
   gauge.expectAPR = calculateExpectedApr(gaugeAdr, veUnderlying, gauge.expectedAmount);
