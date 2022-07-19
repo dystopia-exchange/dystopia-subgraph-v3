@@ -5,10 +5,10 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ dystopia-exchange/dystopia-v3",
-    "create-local": "graph create --node http://localhost:8020/ dystopia-exchange/dystopia-v3",
-    "remove-local": "graph remove --node http://localhost:8020/ dystopia-exchange/dystopia-v3",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 dystopia-exchange/dystopia-v3  -l v0.0.1"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ dystopia-exchange/dystopia",
+    "create-local": "graph create --node http://localhost:8020/ dystopia-exchange/dystopia",
+    "remove-local": "graph remove --node http://localhost:8020/ dystopia-exchange/dystopia",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 dystopia-exchange/dystopia  -l v0.0.1"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.31.0",
