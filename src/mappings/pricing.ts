@@ -3,7 +3,7 @@ import {Bundle, Pair, PairMap, Token} from '../types/schema'
 import {BigDecimal} from '@graphprotocol/graph-ts/index'
 import {generatePairMapID} from './helpers'
 import {
-  MINIMUM_LIQUIDITY_THRESHOLD_ETH,
+  MINIMUM_LIQUIDITY_THRESHOLD_USD,
   ONE_BD,
   stablecoins,
   usdcAddress,
@@ -62,31 +62,71 @@ export function findEthPerToken(token: Token): BigDecimal {
     wl = [usdcAddress()]
   }
 
+  let bestPrice = ZERO_BD
+  let bestLiquidity = ZERO_BD
+
   // loop through whitelist and check if paired with any
   // @ts-ignore
   for (let i = 0; i < wl.length; ++i) {
+
     // @ts-ignore
-    const isStable = isOnStablecoinList(token.id) && isOnStablecoinList(wl[i].toHexString())
+    const pairMapStable = PairMap.load(generatePairMapID(token.id, wl[i].toHex(), true));
     // @ts-ignore
-    const pairMap = PairMap.load(generatePairMapID(token.id, wl[i].toHexString(), isStable));
-    if (!pairMap) {
-      continue;
+    const pairMapVolatile = PairMap.load(generatePairMapID(token.id, wl[i].toHex(), false));
+
+    if (!!pairMapStable) {
+      const data = findBest(
+        pairMapStable.pair,
+        token.id,
+        bestPrice,
+        bestLiquidity
+      );
+
+      // @ts-ignore
+      bestPrice = data[0]
+      // @ts-ignore
+      bestLiquidity = data[1]
     }
-    let pair = Pair.load(pairMap.pair) as Pair;
-    if (pair.reserveETH.lt(MINIMUM_LIQUIDITY_THRESHOLD_ETH)) {
-      continue
-    }
-    if (Address.fromString(pair.token0).equals(Address.fromString(token.id))) {
-      let token1 = Token.load(pair.token1) as Token
-      return pair.token1Price.times(token1.derivedETH as BigDecimal) // return token1 per our token * Eth per token 1
-    }
-    if (Address.fromString(pair.token1).equals(Address.fromString(token.id))) {
-      let token0 = Token.load(pair.token0) as Token
-      return pair.token0Price.times(token0.derivedETH as BigDecimal) // return token0 per our token * ETH per token 0
+
+    if (!!pairMapVolatile) {
+      const data = findBest(
+        pairMapVolatile.pair,
+        token.id,
+        bestPrice,
+        bestLiquidity
+      );
+
+      // @ts-ignore
+      bestPrice = data[0]
+      // @ts-ignore
+      bestLiquidity = data[1]
     }
 
   }
-  return ZERO_BD // nothing was found return 0
+  return bestPrice
+}
+
+function findBest(
+  pairAdr: string,
+  tokenAdr: string,
+  bestPrice: BigDecimal,
+  bestLiquidity: BigDecimal
+): BigDecimal[] {
+  let pair = Pair.load(pairAdr) as Pair;
+  if (pair.reserveUSD.gt(MINIMUM_LIQUIDITY_THRESHOLD_USD) && pair.reserveUSD.gt(bestLiquidity)) {
+
+    if (Address.fromString(pair.token0).equals(Address.fromString(tokenAdr))) {
+      let token1 = Token.load(pair.token1) as Token
+      bestPrice = pair.token1Price.times(token1.derivedETH) // token1 per our token * Eth per token 1
+      bestLiquidity = pair.reserveUSD
+    }
+    if (Address.fromString(pair.token1).equals(Address.fromString(tokenAdr))) {
+      let token0 = Token.load(pair.token0) as Token
+      bestPrice = pair.token0Price.times(token0.derivedETH) // token0 per our token * ETH per token 0
+      bestLiquidity = pair.reserveUSD
+    }
+  }
+  return [bestPrice, bestLiquidity];
 }
 
 /**
