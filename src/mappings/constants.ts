@@ -69,14 +69,14 @@ export function whitelisted(): Address[] {
     ]
   } else if (network == 'bsc') {
     return [
-      '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', // WBNB
-      '0x2170ed0880ac9a755fd29b2688956bd959f933f8', // WETH
-      '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d', // USDC
-      '0x90c97f71e18723b0cf0dfa30ee176ab653e89f40', // FRAX
-      '0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3', // DAI
-      '0x55d398326f99059ff775485246999027b3197955', // USDT
-      '0x3f56e0c36d275367b8c502090edf38289b3dea0d', // MAI
-      '0xe9e7cea3dedca5984780bafc599bd69add087d56', // BUSD
+      Address.fromString('0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c'), // WBNB
+      Address.fromString('0x2170ed0880ac9a755fd29b2688956bd959f933f8'), // WETH
+      Address.fromString('0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d'), // USDC
+      Address.fromString('0x90c97f71e18723b0cf0dfa30ee176ab653e89f40'), // FRAX
+      Address.fromString('0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3'), // DAI
+      Address.fromString('0x55d398326f99059ff775485246999027b3197955'), // USDT
+      Address.fromString('0x3f56e0c36d275367b8c502090edf38289b3dea0d'), // MAI
+      Address.fromString('0xe9e7cea3dedca5984780bafc599bd69add087d56'), // BUSD
     ];
   } else {
     log.critical("UNKNOWN NETWORK {}", [network])
@@ -96,12 +96,12 @@ export function stablecoins(): Address[] {
     ]
   } else if (network == 'bsc') {
     return [
-      '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d', // USDC
-      '0x90c97f71e18723b0cf0dfa30ee176ab653e89f40', // FRAX
-      '0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3', // DAI
-      '0x55d398326f99059ff775485246999027b3197955', // USDT
-      '0x3f56e0c36d275367b8c502090edf38289b3dea0d', // MAI
-      '0xe9e7cea3dedca5984780bafc599bd69add087d56', // BUSD
+      Address.fromString('0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d'), // USDC
+      Address.fromString('0x90c97f71e18723b0cf0dfa30ee176ab653e89f40'), // FRAX
+      Address.fromString('0x1af3f329e8be154074d8769d1ffa4ee058b1dbc3'), // DAI
+      Address.fromString('0x55d398326f99059ff775485246999027b3197955'), // USDT
+      Address.fromString('0x3f56e0c36d275367b8c502090edf38289b3dea0d'), // MAI
+      Address.fromString('0xe9e7cea3dedca5984780bafc599bd69add087d56'), // BUSD
     ]
   } else {
     log.critical("UNKNOWN NETWORK {}", [network])

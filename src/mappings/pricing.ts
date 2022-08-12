@@ -18,7 +18,11 @@ export function getEthPriceInUSD(): BigDecimal {
   //For now we will only use USDC_WETH pair for ETH prices
   let usdcPair = Pair.load(usdcWethPairAddress().toHexString());
   if (usdcPair !== null) {
-    return usdcPair.token0Price
+    if (Address.fromString(usdcPair.token0).equals(wethAddress())) {
+      return usdcPair.token0Price;
+    } else {
+      return usdcPair.token1Price;
+    }
   } else {
     log.warning('USDC/WETH PAIR NOT FOUND', [])
     return ZERO_BD
