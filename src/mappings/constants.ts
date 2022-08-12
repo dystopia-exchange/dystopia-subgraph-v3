@@ -22,7 +22,7 @@ export function wethAddress(): Address {
   if (network == 'matic') {
     return Address.fromString('0x7ceb23fd6bc0add59e62ac25578270cff1b9f619');
   } else if (network == 'bsc') {
-    return Address.fromString('0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c');
+    return Address.fromString('0x2170ed0880ac9a755fd29b2688956bd959f933f8');
   } else {
     log.critical("UNKNOWN NETWORK {}", [network])
     return Address.fromString(ADDRESS_ZERO);

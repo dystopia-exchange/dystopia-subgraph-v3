@@ -19,9 +19,9 @@ export function getEthPriceInUSD(): BigDecimal {
   let usdcPair = Pair.load(usdcWethPairAddress().toHexString());
   if (usdcPair !== null) {
     if (Address.fromString(usdcPair.token0).equals(wethAddress())) {
-      return usdcPair.token0Price;
-    } else {
       return usdcPair.token1Price;
+    } else {
+      return usdcPair.token0Price;
     }
   } else {
     log.warning('USDC/WETH PAIR NOT FOUND', [])
