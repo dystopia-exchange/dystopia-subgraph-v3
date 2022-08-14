@@ -60,10 +60,6 @@ export function findEthPerToken(token: Token): BigDecimal {
   // USDC fetch price ONLY from weth-usdc
   if (usdcAddress().equals(Address.fromString(token.id))) {
     wl = [wethAddress()]
-  } else
-    // other stablecoins fetch price ONLY with xxx-USDC
-  if (isOnStablecoinList(token.id)) {
-    wl = [usdcAddress()]
   }
 
   let bestPrice = ZERO_BD

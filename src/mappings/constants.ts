@@ -77,6 +77,7 @@ export function whitelisted(): Address[] {
       Address.fromString('0x55d398326f99059ff775485246999027b3197955'), // USDT
       Address.fromString('0x3f56e0c36d275367b8c502090edf38289b3dea0d'), // MAI
       Address.fromString('0xe9e7cea3dedca5984780bafc599bd69add087d56'), // BUSD
+      Address.fromString('0xa60205802e1b5c6ec1cafa3cacd49dfeece05ac9'), // CONE
     ];
   } else {
     log.critical("UNKNOWN NETWORK {}", [network])
