@@ -52,7 +52,6 @@ export function addressToVeId(adr: Address): string {
 }
 
 function trimHexToInt(hex: string): string {
-  log.info("TRIM {}", [hex]);
   // @ts-ignore
   hex = hex.replace('0x', '');
 
@@ -69,7 +68,6 @@ function trimHexToInt(hex: string): string {
   if (hex.length % 2 != 0) {
     hex = '0' + hex;
   }
-  log.info("TRIM RESULT {}", [hex]);
   // @ts-ignore
   return BigInt.fromI32(I32.parseInt(hex, 16)).toString()
 }
