@@ -18,6 +18,9 @@ const network = dataSource.network();
 // minimum liquidity for price to get tracked = 0.01 ETH
 export const MINIMUM_LIQUIDITY_THRESHOLD_USD = BigDecimal.fromString('100')
 
+export const DEFAULT_STABLE_FEE = 10_000;
+export const DEFAULT_VOLATILE_FEE = 2_000;
+
 export function wethAddress(): Address {
   if (network == 'matic') {
     return Address.fromString('0x7ceb23fd6bc0add59e62ac25578270cff1b9f619');

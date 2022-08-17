@@ -90,6 +90,8 @@ templates:
           handler: handleTransfer
         - event: Sync(uint256,uint256)
           handler: handleSync
+        - event: FeesChanged(uint256)
+          handler: handleFeesChanged
 
   - kind: ethereum/contract
     name: GaugeTemplate
