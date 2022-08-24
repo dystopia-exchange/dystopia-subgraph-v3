@@ -60,7 +60,8 @@ export function findEthPerToken(token: Token): BigDecimal {
   // USDC fetch price ONLY from weth-usdc
   if (usdcAddress().equals(Address.fromString(token.id))) {
     wl = [wethAddress()]
-  } else
+  }
+  else
     // other stablecoins fetch price ONLY with xxx-USDC
   if (isOnStablecoinList(token.id)) {
     wl = [usdcAddress()]
@@ -72,7 +73,11 @@ export function findEthPerToken(token: Token): BigDecimal {
   // loop through whitelist and check if paired with any
   // @ts-ignore
   for (let i = 0; i < wl.length; ++i) {
-
+    // don't handle price for whitelisted tokens with CONE
+    // @ts-ignore
+    if (isOnWhitelist(token.id) && Address.fromString('0xA60205802E1B5C6EC1CAFA3cAcd49dFeECe05AC9').equals(wl[i])) {
+      continue;
+    }
     // @ts-ignore
     const pairMapStable = PairMap.load(generatePairMapID(token.id, wl[i].toHex(), true));
     // @ts-ignore

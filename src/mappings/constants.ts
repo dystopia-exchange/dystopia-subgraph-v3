@@ -107,7 +107,6 @@ export function stablecoins(): Address[] {
       Address.fromString('0x55d398326f99059ff775485246999027b3197955'), // USDT
       Address.fromString('0x3f56e0c36d275367b8c502090edf38289b3dea0d'), // MAI
       Address.fromString('0xe9e7cea3dedca5984780bafc599bd69add087d56'), // BUSD
-      Address.fromString('0xe80772eaf6e2e18b651f160bc9158b2a5cafca65'), // USD+
     ]
   } else {
     log.critical("UNKNOWN NETWORK {}", [network])
