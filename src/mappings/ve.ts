@@ -1,8 +1,9 @@
 import {Deposit, Withdraw} from '../types/templates/VeTemplate/VeAbi';
 import {VeEntity, VeNFTEntity} from '../types/schema';
-import {ZERO_BD} from './constants';
+import {ADDRESS_ZERO, ZERO_BD} from './constants';
 import {formatUnits} from './helpers';
 import {Address, BigInt, store} from '@graphprotocol/graph-ts';
+import {Transfer} from "../types/Controller/VeAbi";
 
 export function handleDeposit(event: Deposit): void {
   const ve = getVe(event.address.toHexString())
@@ -26,15 +27,28 @@ export function handleDeposit(event: Deposit): void {
 }
 
 export function handleWithdraw(event: Withdraw): void {
-  // just remove entity coz burn
-  store.remove('VeNFTEntity', event.params.tokenId.toString());
-
   const ve = getVe(event.address.toHexString())
-
   ve.totalLocked = ve.totalLocked.minus(formatUnits(event.params.value, BigInt.fromI32(18)));
-  ve.totalNFTs = ve.totalNFTs - 1;
-
   ve.save();
+}
+
+export function handleTransfer(event: Transfer): void {
+  if(event.params.to.equals(Address.fromString(ADDRESS_ZERO))) {
+    // just remove entity coz burn
+    store.remove('VeNFTEntity', event.params.tokenId.toString());
+    const ve = getVe(event.address.toHexString())
+    ve.totalNFTs = ve.totalNFTs - 1;
+    ve.save();
+  }
+  if (!event.params.from.equals(Address.fromString(ADDRESS_ZERO)) && !event.params.to.equals(Address.fromString(ADDRESS_ZERO))) {
+    const veNft = getOrCreateVeNFT(
+      event.params.tokenId.toString(),
+      event.params.from.toHexString(),
+      event.address.toHexString()
+    );
+    veNft.user = event.params.to.toHexString();
+    veNft.save();
+  }
 }
 
 // ********************************************************
