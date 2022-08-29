@@ -1,5 +1,5 @@
 import {Address, BigDecimal, BigInt, ethereum} from '@graphprotocol/graph-ts'
-import {Bundle, LiquidityPosition, LiquidityPositionSnapshot, Pair, Token, User} from '../types/schema'
+import {Bundle, GaugePosition, LiquidityPosition, LiquidityPositionSnapshot, Pair, Token, User} from '../types/schema'
 import {DAY, ONE_BI, ZERO_BD, ZERO_BI} from './constants';
 import {PairAbi} from '../types/Factory/PairAbi';
 import {ERC20SymbolBytes} from '../types/Factory/ERC20SymbolBytes';
@@ -136,6 +136,18 @@ export function createLiquidityPosition(exchange: Address, user: Address): Liqui
     liquidityTokenBalance = new LiquidityPosition(id)
     liquidityTokenBalance.liquidityTokenBalance = ZERO_BD
     liquidityTokenBalance.pair = exchange.toHexString()
+    liquidityTokenBalance.user = user.toHexString()
+  }
+  return liquidityTokenBalance;
+}
+
+export function createGaugePosition(gauge: Address, user: Address): GaugePosition {
+  let id = gauge.toHexString() + '-' + user.toHexString()
+  let liquidityTokenBalance = GaugePosition.load(id)
+  if (liquidityTokenBalance === null) {
+    liquidityTokenBalance = new GaugePosition(id)
+    liquidityTokenBalance.stakedLiquidityTokenBalance = ZERO_BD
+    liquidityTokenBalance.gauge = gauge.toHexString()
     liquidityTokenBalance.user = user.toHexString()
   }
   return liquidityTokenBalance;

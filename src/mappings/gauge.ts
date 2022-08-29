@@ -4,8 +4,14 @@ import {GaugeEntity, GaugeRewardToken, Pair, Token} from '../types/schema'
 import {Address, BigDecimal, BigInt, log} from '@graphprotocol/graph-ts';
 import {ClaimRewards, Deposit, GaugeAbi, NotifyReward, Withdraw} from '../types/templates/GaugeTemplate/GaugeAbi';
 import {PairAbi} from '../types/templates/GaugeTemplate/PairAbi';
-import {ZERO_BD, ZERO_BI} from './constants';
-import {calculateApr, formatUnits} from './helpers';
+import {BI_18, ZERO_BD, ZERO_BI} from './constants';
+import {
+  calculateApr,
+  convertTokenToDecimal,
+  createGaugePosition,
+  createLiquidityPosition,
+  formatUnits
+} from './helpers';
 
 
 // ********************************************************
@@ -24,6 +30,10 @@ export function handleDeposit(event: Deposit): void {
   for (let i = 0; i < tokens.length; i++) {
     updateGaugeToken(gauge, tokens[i], event.params.amount, event.block.timestamp);
   }
+
+  let userGaugePosition = createGaugePosition(event.address, event.params.from)
+  userGaugePosition.stakedLiquidityTokenBalance = userGaugePosition.stakedLiquidityTokenBalance.plus(convertTokenToDecimal(event.params.amount, BI_18))
+  userGaugePosition.save()
 }
 
 export function handleWithdraw(event: Withdraw): void {
@@ -32,6 +42,10 @@ export function handleWithdraw(event: Withdraw): void {
   for (let i = 0; i < tokens.length; i++) {
     updateGaugeToken(gauge, tokens[i], event.params.amount.neg(), event.block.timestamp);
   }
+
+  let userGaugePosition = createGaugePosition(event.address, event.params.from)
+  userGaugePosition.stakedLiquidityTokenBalance = userGaugePosition.stakedLiquidityTokenBalance.minus(convertTokenToDecimal(event.params.amount, BI_18))
+  userGaugePosition.save()
 }
 
 export function handleClaimRewards(event: ClaimRewards): void {
