@@ -149,6 +149,7 @@ function getOrCreateGauge(
     gauge.pair = gaugeCtr.underlying().toHex()
     gauge.totalSupply = ZERO_BD
     gauge.totalSupplyETH = ZERO_BD
+    gauge.totalDerivedSupply = ZERO_BD
     gauge.voteWeight = ZERO_BD
     gauge.expectedAmount = ZERO_BD
     gauge.expectAPR = ZERO_BD
