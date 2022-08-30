@@ -14,32 +14,42 @@ import {calculateApr, formatUnits} from './helpers';
 
 export function handleNotify(event: NotifyReward): void {
   const gauge = getGauge(event.address);
-  updateGaugeToken(gauge, event.params.reward.toHexString(), BigInt.fromI32(0), event.block.timestamp);
+  updateGaugeToken(gauge, event.params.reward.toHexString(), event.block.timestamp);
+  gauge.save();
 }
 
 
 export function handleDeposit(event: Deposit): void {
   const gauge = getGauge(event.address);
   const tokens = gauge.rewardTokensAddresses;
+  let pairPriceETH = ZERO_BD;
   for (let i = 0; i < tokens.length; i++) {
-    updateGaugeToken(gauge, tokens[i], event.params.amount, event.block.timestamp);
+    pairPriceETH = updateGaugeToken(gauge, tokens[i], event.block.timestamp);
   }
+
+  updateGaugeSupply(gauge, event.params.amount, pairPriceETH)
+  gauge.save();
 }
 
 export function handleWithdraw(event: Withdraw): void {
   const gauge = getGauge(event.address);
   const tokens = gauge.rewardTokensAddresses;
+  let pairPriceETH = ZERO_BD;
   for (let i = 0; i < tokens.length; i++) {
-    updateGaugeToken(gauge, tokens[i], event.params.amount.neg(), event.block.timestamp);
+    pairPriceETH = updateGaugeToken(gauge, tokens[i], event.block.timestamp);
   }
+  updateGaugeSupply(gauge, event.params.amount.neg(), pairPriceETH)
+  gauge.save();
 }
 
 export function handleClaimRewards(event: ClaimRewards): void {
   const gauge = getGauge(event.address);
   const tokens = gauge.rewardTokensAddresses;
   for (let i = 0; i < tokens.length; i++) {
-    updateGaugeToken(gauge, tokens[i], BigInt.fromI32(0), event.block.timestamp);
+    updateGaugeToken(gauge, tokens[i], event.block.timestamp);
   }
+
+  gauge.save();
 }
 
 // ********************************************************
@@ -54,16 +64,15 @@ function getGauge(adr: Address): GaugeEntity {
 function updateGaugeToken(
   gauge: GaugeEntity,
   rewardTokenAdr: string,
-  amount: BigInt,
   now: BigInt,
-): void {
+): BigDecimal {
   const gaugeCtr = GaugeAbi.bind(Address.fromString(gauge.id));
   const token = getOrCreateToken(rewardTokenAdr)
   const pair = Pair.load(gauge.pair) as Pair;
 
-  let rewardToken = GaugeRewardToken.load(gauge.id+rewardTokenAdr);
+  let rewardToken = GaugeRewardToken.load(gauge.id + rewardTokenAdr);
   if (!rewardToken) {
-    rewardToken = new GaugeRewardToken(gauge.id+rewardTokenAdr);
+    rewardToken = new GaugeRewardToken(gauge.id + rewardTokenAdr);
     rewardToken.gauge = gauge.id;
     rewardToken.token = rewardTokenAdr;
 
@@ -95,10 +104,12 @@ function updateGaugeToken(
 
   rewardToken.save();
 
+  return pairPriceETH;
+}
+
+function updateGaugeSupply(gauge: GaugeEntity, amount: BigInt, pairPriceETH: BigDecimal): void {
   gauge.totalSupply = gauge.totalSupply.plus(formatUnits(amount, BigInt.fromI32(18)));
   gauge.totalSupplyETH = gauge.totalSupply.times(pairPriceETH);
-
-  gauge.save();
 }
 
 function getOrCreateToken(tokenAdr: string): Token {

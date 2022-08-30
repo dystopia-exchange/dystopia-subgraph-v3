@@ -167,6 +167,8 @@ templates:
           handler: handleDeposit
         - event: Withdraw(indexed address,uint256,uint256,uint256)
           handler: handleWithdraw
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
 
   - kind: ethereum/contract
     name: VoterTemplate
