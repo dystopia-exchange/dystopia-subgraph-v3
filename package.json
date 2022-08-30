@@ -6,6 +6,7 @@
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ dystopia-exchange/dystopia",
+    "deploy-staging": "graph deploy --product hosted-service belbix/dystopia-staging",
     "create-local": "graph create --node http://localhost:8020/ dystopia-exchange/dystopia",
     "remove-local": "graph remove --node http://localhost:8020/ dystopia-exchange/dystopia",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 dystopia-exchange/dystopia  -l v0.0.1"

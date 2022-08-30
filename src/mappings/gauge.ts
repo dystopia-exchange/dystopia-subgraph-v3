@@ -1,6 +1,6 @@
 // noinspection JSUnusedGlobalSymbols
 
-import {GaugeEntity, GaugeRewardToken, Pair, Token} from '../types/schema'
+import {GaugeEntity, GaugeRewardToken, GaugeUserPosition, Pair, Token} from '../types/schema'
 import {Address, BigDecimal, BigInt, log} from '@graphprotocol/graph-ts';
 import {ClaimRewards, Deposit, GaugeAbi, NotifyReward, Withdraw} from '../types/templates/GaugeTemplate/GaugeAbi';
 import {PairAbi} from '../types/templates/GaugeTemplate/PairAbi';
@@ -28,6 +28,16 @@ export function handleDeposit(event: Deposit): void {
   }
 
   updateGaugeSupply(gauge, event.params.amount, pairPriceETH)
+
+  // USER POSITION
+  const pos = getOrCreateGaugeUserPosition(gauge.id, event.params.from.toHexString());
+  // assume only LP tokens with 18 decimals
+  pos.balance = pos.balance.plus(formatUnits(event.params.amount, BigInt.fromI32(18)))
+  gauge.totalDerivedSupply = gauge.totalDerivedSupply.minus(pos.derivedBalance);
+  pos.derivedBalance = formatUnits(GaugeAbi.bind(event.address).derivedBalance(event.params.from), BigInt.fromI32(18));
+  gauge.totalDerivedSupply = gauge.totalDerivedSupply.plus(pos.derivedBalance);
+
+  pos.save();
   gauge.save();
 }
 
@@ -39,6 +49,17 @@ export function handleWithdraw(event: Withdraw): void {
     pairPriceETH = updateGaugeToken(gauge, tokens[i], event.block.timestamp);
   }
   updateGaugeSupply(gauge, event.params.amount.neg(), pairPriceETH)
+
+
+  // USER POSITION
+  const pos = getOrCreateGaugeUserPosition(gauge.id, event.params.from.toHexString());
+  // assume only LP tokens with 18 decimals
+  pos.balance = pos.balance.minus(formatUnits(event.params.amount, BigInt.fromI32(18)))
+  gauge.totalDerivedSupply = gauge.totalDerivedSupply.minus(pos.derivedBalance);
+  pos.derivedBalance = formatUnits(GaugeAbi.bind(event.address).derivedBalance(event.params.from), BigInt.fromI32(18));
+  gauge.totalDerivedSupply = gauge.totalDerivedSupply.plus(pos.derivedBalance);
+
+  pos.save();
   gauge.save();
 }
 
@@ -135,5 +156,17 @@ function getOrCreateToken(tokenAdr: string): Token {
   }
 
   return token;
+}
+
+function getOrCreateGaugeUserPosition(gaugeAdr: string, userAdr: string): GaugeUserPosition {
+  let pos = GaugeUserPosition.load(gaugeAdr + userAdr);
+  if (!pos) {
+    pos = new GaugeUserPosition(gaugeAdr + userAdr);
+    pos.gauge = gaugeAdr;
+    pos.user = userAdr;
+    pos.balance = ZERO_BD;
+    pos.derivedBalance = ZERO_BD;
+  }
+  return pos;
 }
 
