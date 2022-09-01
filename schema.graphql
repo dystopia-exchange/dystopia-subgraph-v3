@@ -261,8 +261,12 @@ type Swap @entity {
 
 type User @entity {
     id: ID!
-    liquidityPositions: [LiquidityPosition!] @derivedFrom(field: "user")
+
     usdSwapped: BigDecimal!
+
+    liquidityPositions: [LiquidityPosition!] @derivedFrom(field: "user")
+    gaugePositions: [GaugeUserPosition!] @derivedFrom(field: "user")
+    nfts: [VeNFTEntity!] @derivedFrom(field: "user")
 }
 
 ##################################################
@@ -362,6 +366,7 @@ type GaugeEntity @entity {
     totalSupply :BigDecimal!
     totalSupplyETH :BigDecimal!
     bribe:BribeEntity
+    totalDerivedSupply :BigDecimal!
 
     voteWeight: BigDecimal!
     expectedAmount: BigDecimal!
@@ -388,15 +393,25 @@ type GaugeRewardToken @entity {
     apr:BigDecimal!
 }
 
-type GaugeUser @entity {
+type GaugeAttachment @entity {
     id: ID!
 
     gauge: GaugeEntity!
-    user: String!
+    user: User!
 
     deposit: BigDecimal!
 
     veNFT: VeNFTEntity
+}
+
+type GaugeUserPosition @entity {
+    id: ID!
+
+    gauge: GaugeEntity!
+    user: User!
+
+    balance: BigDecimal!
+    derivedBalance: BigDecimal!
 }
 
 ##################################################
@@ -452,14 +467,14 @@ type VeNFTEntity @entity {
     id: ID!
 
     ve: VeEntity!
-    user: String!
+    user: User!
 
     lockedAmount: BigDecimal!
     lockedEnd: Int!
     attachments: Int!
     voteIds: [String!]!
 
-    gauges: [GaugeUser!]! @derivedFrom(field: "veNFT")
+    gauges: [GaugeAttachment!]! @derivedFrom(field: "veNFT")
     bribes: [BribeUser!]!  @derivedFrom(field: "veNFT")
     votes: [Vote!]! @derivedFrom(field: "veNFT")
 }

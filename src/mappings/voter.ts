@@ -1,16 +1,6 @@
 // noinspection JSUnusedGlobalSymbols
 
-import {
-  BribeEntity,
-  GaugeEntity,
-  GaugeRewardToken,
-  GaugeUser,
-  Pair,
-  Token, VeDistEntity,
-  VeEntity,
-  VeNFTEntity,
-  Vote
-} from '../types/schema'
+import {BribeEntity, GaugeAttachment, GaugeEntity, Pair, Token, VeEntity, VeNFTEntity, Vote} from '../types/schema'
 import {BribeTemplate, GaugeTemplate} from '../types/templates';
 import {ZERO_BD, ZERO_BI} from './constants';
 import {
@@ -18,7 +8,8 @@ import {
   Attach,
   Deposit,
   Detach,
-  GaugeCreated, Voted,
+  GaugeCreated,
+  Voted,
   VoterAbi,
   Whitelisted,
   Withdraw
@@ -67,20 +58,20 @@ export function handleWhitelisted(event: Whitelisted): void {
 }
 
 export function handleDeposit(event: Deposit): void {
-  const gaugeUser = getOrCreateGaugeUser(event.params.gauge.toHexString(), event.params.lp.toHexString());
-  gaugeUser.deposit = gaugeUser.deposit.plus(formatUnits(event.params.amount, BigInt.fromI32(18)))
-  gaugeUser.veNFT = event.params.tokenId.toString()
-  gaugeUser.save();
+  const gaugeAttachment = getOrCreateGaugeAttachment(event.params.gauge.toHexString(), event.params.lp.toHexString());
+  gaugeAttachment.deposit = gaugeAttachment.deposit.plus(formatUnits(event.params.amount, BigInt.fromI32(18)))
+  gaugeAttachment.veNFT = event.params.tokenId.toString()
+  gaugeAttachment.save();
 }
 
 export function handleWithdraw(event: Withdraw): void {
-  const gaugeUser = getOrCreateGaugeUser(event.params.gauge.toHexString(), event.params.lp.toHexString());
-  gaugeUser.deposit = gaugeUser.deposit.minus(formatUnits(event.params.amount, BigInt.fromI32(18)));
+  const gaugeAttachment = getOrCreateGaugeAttachment(event.params.gauge.toHexString(), event.params.lp.toHexString());
+  gaugeAttachment.deposit = gaugeAttachment.deposit.minus(formatUnits(event.params.amount, BigInt.fromI32(18)));
   // emit with veId means full withdraw and unlock ve
   if (event.params.tokenId.notEqual(ZERO_BI)) {
-    gaugeUser.veNFT = null;
+    gaugeAttachment.veNFT = null;
   }
-  gaugeUser.save();
+  gaugeAttachment.save();
 }
 
 export function handleAttach(event: Attach): void {
@@ -158,6 +149,7 @@ function getOrCreateGauge(
     gauge.pair = gaugeCtr.underlying().toHex()
     gauge.totalSupply = ZERO_BD
     gauge.totalSupplyETH = ZERO_BD
+    gauge.totalDerivedSupply = ZERO_BD
     gauge.voteWeight = ZERO_BD
     gauge.expectedAmount = ZERO_BD
     gauge.expectAPR = ZERO_BD
@@ -176,10 +168,10 @@ function getVeNFT(veId: string): VeNFTEntity {
   return ve as VeNFTEntity;
 }
 
-function getOrCreateGaugeUser(gaugeAdr: string, userAdr: string): GaugeUser {
-  let user = GaugeUser.load(gaugeAdr + userAdr);
+function getOrCreateGaugeAttachment(gaugeAdr: string, userAdr: string): GaugeAttachment {
+  let user = GaugeAttachment.load(gaugeAdr + userAdr);
   if (!user) {
-    user = new GaugeUser(gaugeAdr + userAdr);
+    user = new GaugeAttachment(gaugeAdr + userAdr);
     user.gauge = gaugeAdr
     user.user = userAdr
     user.deposit = ZERO_BD
