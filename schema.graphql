@@ -260,10 +260,12 @@ type Swap @entity {
 
 type User @entity {
     id: ID!
-    liquidityPositions: [LiquidityPosition!] @derivedFrom(field: "user")
+
     usdSwapped: BigDecimal!
 
+    liquidityPositions: [LiquidityPosition!] @derivedFrom(field: "user")
     gaugePositions: [GaugeUserPosition!] @derivedFrom(field: "user")
+    nfts: [VeNFTEntity!] @derivedFrom(field: "user")
 }
 
 ##################################################
@@ -464,7 +466,7 @@ type VeNFTEntity @entity {
     id: ID!
 
     ve: VeEntity!
-    user: String!
+    user: User!
 
     lockedAmount: BigDecimal!
     lockedEnd: Int!

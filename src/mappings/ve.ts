@@ -1,5 +1,5 @@
 import {Deposit, Withdraw} from '../types/templates/VeTemplate/VeAbi';
-import {VeEntity, VeNFTEntity} from '../types/schema';
+import {User, VeEntity, VeNFTEntity} from '../types/schema';
 import {ADDRESS_ZERO, ZERO_BD} from './constants';
 import {formatUnits} from './helpers';
 import {Address, BigInt, store} from '@graphprotocol/graph-ts';
@@ -33,7 +33,7 @@ export function handleWithdraw(event: Withdraw): void {
 }
 
 export function handleTransfer(event: Transfer): void {
-  if(event.params.to.equals(Address.fromString(ADDRESS_ZERO))) {
+  if (event.params.to.equals(Address.fromString(ADDRESS_ZERO))) {
     // just remove entity coz burn
     store.remove('VeNFTEntity', event.params.tokenId.toString());
     const ve = getVe(event.address.toHexString())
@@ -47,6 +47,14 @@ export function handleTransfer(event: Transfer): void {
       event.address.toHexString()
     );
     veNft.user = event.params.to.toHexString();
+
+    let user = User.load(event.params.to.toHexString())
+    if (!user) {
+      user = new User(event.params.to.toHexString());
+      user.usdSwapped = ZERO_BD;
+      user.save();
+    }
+
     veNft.save();
   }
 }
