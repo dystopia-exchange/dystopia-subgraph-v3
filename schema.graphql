@@ -377,6 +377,7 @@ type GaugeEntity @entity {
 
     rewardTokens: [GaugeRewardToken!]! @derivedFrom(field: "gauge")
     votes: [Vote!]! @derivedFrom(field: "gauge")
+    positions: [GaugeUserPosition!] @derivedFrom(field: "gauge")
 }
 
 type GaugeRewardToken @entity {
