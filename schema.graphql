@@ -371,6 +371,7 @@ type GaugeEntity @entity {
     voteWeight: BigDecimal!
     expectedAmount: BigDecimal!
     expectAPR: BigDecimal!
+    expectAPRDerived: BigDecimal!
     totalWeight: BigDecimal!
 
     rewardTokensAddresses: [String!]!
@@ -392,6 +393,8 @@ type GaugeRewardToken @entity {
     left:BigDecimal!
     leftETH:BigDecimal!
     apr:BigDecimal!
+    finishPeriod:BigDecimal!
+    derivedAPR:BigDecimal!
 }
 
 type GaugeAttachment @entity {

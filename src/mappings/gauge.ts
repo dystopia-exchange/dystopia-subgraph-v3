@@ -121,7 +121,9 @@ function updateGaugeToken(
   rewardToken.totalSupplyETH = totalSupplyETH;
   rewardToken.left = left;
   rewardToken.leftETH = leftETH;
+  rewardToken.finishPeriod = finishPeriod.toBigDecimal();
   rewardToken.apr = calculateApr(now, finishPeriod, leftETH, totalSupplyETH);
+  rewardToken.derivedAPR = calculateApr(now, finishPeriod, leftETH, gauge.totalDerivedSupply.times(pairPriceETH));
 
   rewardToken.save();
 
