@@ -153,6 +153,7 @@ function getOrCreateGauge(
     gauge.voteWeight = ZERO_BD
     gauge.expectedAmount = ZERO_BD
     gauge.expectAPR = ZERO_BD
+    gauge.expectAPRDerived = ZERO_BD
     gauge.totalWeight = ZERO_BD
     gauge.rewardTokensAddresses = []
     GaugeTemplate.create(Address.fromString(gaugeAdr))
@@ -254,7 +255,9 @@ function updateGaugeVotes(
   gauge.voteWeight = formatUnits(voterCtr.weights(Address.fromString(poolAdr)), BigInt.fromI32(18));
   gauge.totalWeight = totalWeight;
   gauge.expectedAmount = gauge.voteWeight.div(totalWeight).times(weekly);
-  gauge.expectAPR = calculateExpectedApr(gaugeAdr, veUnderlying, gauge.expectedAmount);
+  const gaugeCtr = GaugeAbi.bind(Address.fromString(gaugeAdr));
+  gauge.expectAPR = calculateExpectedApr(gaugeAdr, veUnderlying, gauge.expectedAmount, formatUnits(gaugeCtr.totalSupply(), BigInt.fromI32(18)));
+  gauge.expectAPRDerived = calculateExpectedApr(gaugeAdr, veUnderlying, gauge.expectedAmount, gauge.totalDerivedSupply);
   gauge.save();
 }
 
@@ -262,10 +265,10 @@ function updateGaugeVotes(
 function calculateExpectedApr(
   gaugeAdr: string,
   rewardTokenAdr: string,
-  expectedProfit: BigDecimal
+  expectedProfit: BigDecimal,
+  gaugeTotalSupply: BigDecimal,
 ): BigDecimal {
   const gauge = getOrCreateGauge(gaugeAdr);
-  const gaugeCtr = GaugeAbi.bind(Address.fromString(gaugeAdr));
   const pair = Pair.load(gauge.pair) as Pair;
   const rewardToken = Token.load(rewardTokenAdr);
   if (!rewardToken) {
@@ -279,7 +282,7 @@ function calculateExpectedApr(
     return ZERO_BD;
   }
 
-  const totalSupplyETH = formatUnits(gaugeCtr.totalSupply(), BigInt.fromI32(18)).times(pairPriceETH);
+  const totalSupplyETH = gaugeTotalSupply.times(pairPriceETH);
 
   return calculateApr(ZERO_BI, BigInt.fromI32(60 * 60 * 24 * 7), expectedProfit.times(rewardToken.derivedETH), totalSupplyETH);
 

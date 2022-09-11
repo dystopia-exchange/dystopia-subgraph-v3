@@ -13,16 +13,20 @@ export function handleDeposit(event: Deposit): void {
     event.address.toHexString()
   );
 
-  ve.totalLocked = ve.totalLocked.minus(veNft.lockedAmount);
+  // exclude for MERGE
+  if(event.params.depositType !== 4) {
+    ve.totalLocked = ve.totalLocked.minus(veNft.lockedAmount);
+  }
 
   veNft.lockedAmount = veNft.lockedAmount.plus(formatUnits(event.params.value, BigInt.fromI32(18)))
   veNft.lockedEnd = event.params.locktime.toI32()
 
-
-  ve.totalNFTs = ve.totalNFTs + 1;
-  ve.totalLocked = ve.totalLocked.plus(veNft.lockedAmount);
-  ve.save();
-
+  // exclude for MERGE
+  if(event.params.depositType !== 4) {
+    ve.totalNFTs = ve.totalNFTs + 1;
+    ve.totalLocked = ve.totalLocked.plus(veNft.lockedAmount);
+    ve.save();
+  }
   veNft.save();
 }
 
