@@ -14,7 +14,7 @@ export function handleDeposit(event: Deposit): void {
   );
 
   // exclude for MERGE
-  if(event.params.depositType !== 4) {
+  if (event.params.depositType !== 4) {
     ve.totalLocked = ve.totalLocked.minus(veNft.lockedAmount);
   }
 
@@ -22,7 +22,7 @@ export function handleDeposit(event: Deposit): void {
   veNft.lockedEnd = event.params.locktime.toI32()
 
   // exclude for MERGE
-  if(event.params.depositType !== 4) {
+  if (event.params.depositType !== 4) {
     ve.totalNFTs = ve.totalNFTs + 1;
     ve.totalLocked = ve.totalLocked.plus(veNft.lockedAmount);
     ve.save();
@@ -44,23 +44,23 @@ export function handleTransfer(event: Transfer): void {
     ve.totalNFTs = ve.totalNFTs - 1;
     ve.save();
   }
-  if (!event.params.from.equals(Address.fromString(ADDRESS_ZERO)) && !event.params.to.equals(Address.fromString(ADDRESS_ZERO))) {
-    const veNft = getOrCreateVeNFT(
-      event.params.tokenId.toString(),
-      event.params.from.toHexString(),
-      event.address.toHexString()
-    );
-    veNft.user = event.params.to.toHexString();
+  // if (!event.params.from.equals(Address.fromString(ADDRESS_ZERO)) && !event.params.to.equals(Address.fromString(ADDRESS_ZERO))) {
+  const veNft = getOrCreateVeNFT(
+    event.params.tokenId.toString(),
+    event.params.from.toHexString(),
+    event.address.toHexString()
+  );
+  veNft.user = event.params.to.toHexString();
 
-    let user = User.load(event.params.to.toHexString())
-    if (!user) {
-      user = new User(event.params.to.toHexString());
-      user.usdSwapped = ZERO_BD;
-      user.save();
-    }
-
-    veNft.save();
+  let user = User.load(event.params.to.toHexString())
+  if (!user) {
+    user = new User(event.params.to.toHexString());
+    user.usdSwapped = ZERO_BD;
+    user.save();
   }
+
+  veNft.save();
+  // }
 }
 
 // ********************************************************
