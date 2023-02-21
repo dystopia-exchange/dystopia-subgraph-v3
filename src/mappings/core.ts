@@ -320,15 +320,30 @@ export function handleMint(event: Mint): void {
 }
 
 export function handleBurn(event: Burn): void {
-  let transaction = Transaction.load(event.transaction.hash.toHexString()) as Transaction
+  let transaction = Transaction.load(event.transaction.hash.toHexString())
+  if (!transaction) {
+    return
+  }
   let burns = transaction.burns
-  let burn = BurnEvent.load(burns[burns.length - 1]) as BurnEvent
-  let pair = Pair.load(event.address.toHex()) as Pair
-  let uniswap = UniswapFactory.load(pair.factory) as UniswapFactory
+  let burn = BurnEvent.load(burns[burns.length - 1])
+  if (!burn) {
+    return
+  }
+  let pair = Pair.load(event.address.toHex())
+  if (!pair) {
+    return;
+  }
+  let uniswap = UniswapFactory.load(pair.factory)
+  if (!uniswap) {
+    return;
+  }
 
   //update token info
-  let token0 = Token.load(pair.token0) as Token
-  let token1 = Token.load(pair.token1) as Token
+  let token0 = Token.load(pair.token0)
+  let token1 = Token.load(pair.token1)
+  if (!token0 || !token1) {
+    return;
+  }
 
   let token0Amount = convertTokenToDecimal(event.params.amount0, token0.decimals)
   let token1Amount = convertTokenToDecimal(event.params.amount1, token1.decimals)

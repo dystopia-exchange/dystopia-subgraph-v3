@@ -1,4 +1,10 @@
 specVersion: 0.0.4
+#features:
+#  - nonFatalErrors
+#  - grafting
+#graft:
+#  base: QmPHFY3tLBXG1hs4HS4g7bZWfULC12rDB5peDGFwsatQmG # Subgraph ID of base subgraph
+#  block: 39423000 # Block number
 schema:
   file: ./schema.graphql
 dataSources:
