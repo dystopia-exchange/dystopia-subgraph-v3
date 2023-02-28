@@ -1,15 +1,15 @@
 {
-  "name": "dystopia-subgraph",
+  "name": "cone-subgraph",
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ dystopia-exchange/dystopia",
-    "deploy-staging": "graph deploy --product hosted-service belbix/dystopia-staging",
-    "create-local": "graph create --node http://localhost:8020/ dystopia-exchange/dystopia",
-    "remove-local": "graph remove --node http://localhost:8020/ dystopia-exchange/dystopia",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 dystopia-exchange/dystopia  -l v0.0.1"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ cone-exchange/cone",
+    "deploy-staging": "graph deploy --node https://api.thegraph.com/deploy/ belbix/cone-staging",
+    "create-local": "graph create --node http://localhost:8020/ cone-exchange/cone",
+    "remove-local": "graph remove --node http://localhost:8020/ cone-exchange/cone",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 cone-exchange/cone  -l v0.0.1"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.31.0",

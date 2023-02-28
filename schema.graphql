@@ -135,6 +135,7 @@ type Pair @entity {
 
     gauge: GaugeEntity
     gaugebribes: BribeEntity
+    fee: Int!
 }
 
 type PairMap @entity(immutable: true) {

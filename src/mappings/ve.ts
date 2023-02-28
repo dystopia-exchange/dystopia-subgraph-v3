@@ -14,7 +14,7 @@ export function handleDeposit(event: Deposit): void {
   );
 
   // exclude for MERGE
-  if(event.params.depositType !== 4) {
+  if (event.params.depositType !== 4) {
     ve.totalLocked = ve.totalLocked.minus(veNft.lockedAmount);
   }
 
@@ -22,7 +22,7 @@ export function handleDeposit(event: Deposit): void {
   veNft.lockedEnd = event.params.locktime.toI32()
 
   // exclude for MERGE
-  if(event.params.depositType !== 4) {
+  if (event.params.depositType !== 4) {
     ve.totalNFTs = ve.totalNFTs + 1;
     ve.totalLocked = ve.totalLocked.plus(veNft.lockedAmount);
     ve.save();

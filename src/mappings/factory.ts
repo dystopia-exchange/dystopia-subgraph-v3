@@ -11,7 +11,7 @@ import {
   fetchTokenTotalSupply,
   generatePairMapID,
 } from './helpers'
-import {ADDRESS_ZERO, ZERO_BD, ZERO_BI} from './constants'
+import {ADDRESS_ZERO, DEFAULT_STABLE_FEE, DEFAULT_VOLATILE_FEE, ZERO_BD, ZERO_BI} from './constants'
 import {isOnWhitelist} from './pricing'
 
 
@@ -76,6 +76,12 @@ export function handleNewPair(event: PairCreated): void {
   pair.untrackedVolumeUSD = ZERO_BD
   pair.token0Price = ZERO_BD
   pair.token1Price = ZERO_BD
+
+  if(event.params.stable) {
+    pair.fee = DEFAULT_STABLE_FEE;
+  } else {
+    pair.fee = DEFAULT_VOLATILE_FEE;
+  }
 
   pair.gauge = ADDRESS_ZERO
   pair.gaugebribes = ADDRESS_ZERO

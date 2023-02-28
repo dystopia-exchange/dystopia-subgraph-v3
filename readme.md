@@ -1,5 +1,5 @@
-# Dystopia Subgraph
-![TESTS](https://github.com/dystopia-exchange/dystopia-subgraph-v3/actions/workflows/test.yml/badge.svg)
+# Cone Subgraph
+![TESTS](https://github.com/cone-exchange/cone-subgraph/actions/workflows/test.yml/badge.svg)
 
 
 ## Install

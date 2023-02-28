@@ -16,6 +16,7 @@ import {updatePairDayData, updatePairHourData, updateTokenDayData, updateUniswap
 import {findEthPerToken, getEthPriceInUSD, getTrackedLiquidityUSD, getTrackedVolumeUSD} from './pricing'
 import {convertTokenToDecimal, createLiquidityPosition, createLiquiditySnapshot, createUser,} from './helpers'
 import {ADDRESS_ZERO, BI_18, ONE_BI, ZERO_BD} from './constants';
+import {FeesChanged} from "../types/Factory/PairAbi";
 
 // *******************************************************************
 //                     HANDLERS
@@ -549,6 +550,12 @@ export function handleSwap(event: Swap): void {
     amount1Total.times(token1.derivedETH as BigDecimal).times(bundle.ethPrice)
   )
   token1DayData.save()
+}
+
+function handleFeesChanged(event: FeesChanged): void {
+  const pair = Pair.load(event.address.toHexString()) as Pair
+  pair.fee = event.params.newValue.toI32();
+  pair.save();
 }
 
 // *******************************************************************
