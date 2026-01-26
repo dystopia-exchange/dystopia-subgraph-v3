@@ -11,7 +11,7 @@ dataSources:
       startBlock: 19657538
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/mappings/factory.ts
       entities:
@@ -39,7 +39,7 @@ dataSources:
       startBlock: 20403738
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/mappings/controller.ts
       entities:
@@ -70,7 +70,7 @@ templates:
       abi: PairAbi
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/mappings/core.ts
       entities:
@@ -100,7 +100,7 @@ templates:
       abi: GaugeAbi
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/mappings/gauge.ts
       entities:
@@ -127,7 +127,7 @@ templates:
       abi: BribeAbi
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/mappings/bribe.ts
       entities:
@@ -154,7 +154,7 @@ templates:
       abi: VeAbi
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/mappings/ve.ts
       entities:
@@ -179,7 +179,7 @@ templates:
       abi: VoterAbi
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/mappings/voter.ts
       entities:
@@ -218,7 +218,7 @@ templates:
       abi: VeDistAbi
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/mappings/ve-dist.ts
       entities:
